@@ -6,7 +6,7 @@ model-predicted values) into a single error value.
 import numpy as np
 
 
-def rms(devs: np.ndarray) -> float:
+def rms(devs):
     """
     Find the root-mean-square of deviations.
     """
@@ -15,7 +15,7 @@ def rms(devs: np.ndarray) -> float:
     return np.sqrt(np.mean(devs ** 2))
 
 
-def mae(devs: np.ndarray) -> float:
+def mae(devs):
     """
     Find the mean absolute value of deviations.
     """
@@ -24,7 +24,7 @@ def mae(devs: np.ndarray) -> float:
     return np.mean(np.abs(devs))
 
 
-def maxd(devs: np.ndarray) -> float:
+def maxd(devs):
     """
     Find the maximum of the magnitude of deviations.
     """
@@ -33,7 +33,7 @@ def maxd(devs: np.ndarray) -> float:
     return np.max(np.abs(devs))
 
 
-def smr(devs: np.ndarray) -> float:
+def smr(devs):
     """
     Find the square-mean-root of deviations.
     """

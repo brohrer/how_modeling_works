@@ -32,34 +32,36 @@ def split_data(x=None, y=None, extrapolate=False):
         y_test = y[n_train:]
     else:
         # Interpolation
-        i_train = np.sort(np.random.choice(x, size=n_train, replace=False))
-        i_test = np.setdiff(x, i_train)
+        i_data = np.cumsum(np.ones(x.size), dtype=np.int) - 1
+        i_train = np.sort(
+            np.random.choice(i_data, size=n_train, replace=False))
+        i_test = np.setdiff1d(i_data, i_train)
         x_train = x[i_train]
         x_test = x[i_test]
         y_train = y[i_train]
         y_test = y[i_test]
 
-    return x_train, x_test, y_train, y_test
+    return x_train, y_train, x_test, y_test
 
 
-def compare_models(x, y):
+def compare_models(x_train, y_train, x_test, y_test):
     """
     Fit a data set with a variety of models and figure out which fits best.
     """
-    x_train, x_test, y_train, y_test = split_data(x, y)
+    training_errors = []
+    testing_errors = []
 
-    # Choose error function
-
-    errors = []
     models = mod.all_models
     for model in models:
-        res = train(model, x_train, y_train)
+        res = train(model, x_train, y_train, n_iter=model.n_iter_default)
         p_final = res.x
 
-        errors.append(
-            loss_fun(p_final, x_test, y_test, model.evaluate, ERROR_FUNCTION))
+        training_errors.append(loss_fun(
+            p_final, x_train, y_train, model.evaluate, ERROR_FUNCTION))
+        testing_errors.append(loss_fun(
+            p_final, x_test, y_test, model.evaluate, ERROR_FUNCTION))
 
-    return models, errors
+    return models, training_errors, testing_errors
 
 
 def train(model, x_train, y_train, n_iter=3):
@@ -79,11 +81,17 @@ def train(model, x_train, y_train, n_iter=3):
             method="Nelder-Mead",
             args=error_fun_args,
         )
-        loss = loss_fun(res.x, x_train, y_train, model.evaluate, ERROR_FUNCTION)
+        loss = loss_fun(
+            res.x,
+            x_train,
+            y_train,
+            model.evaluate,
+            ERROR_FUNCTION,
+        )
         if loss < best_loss:
             best_loss = loss
             best_res = res
-    
+
     return best_res
 
 

@@ -20,95 +20,79 @@ class AbstractModel(object):
         return 0
 
 
-class Line(AbstractModel):
+class Polynomial(AbstractModel):
+    """
+    y = p0 + p1 * x + p2 * x^2 + p3 * x^3 + ...
+    where the highest power of x is the order of the polynomial.
+    """
+    def __init__(self, order=1):
+        self.order = int(order)
+        self.n_params = self.order + 1
+        names = {
+            1: "Linear",
+            2: "Quadratic",
+            3: "Cubic",
+            4: "Quartic",
+            5: "Quintic",
+            6: "Sextic",
+            7: "Septic",
+            8: "Octic",
+        }
+        if names.get(self.order):
+            self.name = names.get(self.order) + " model"
+        else:
+            self.name = str(self.order) + "-order polynomial model"
+        self.n_iter_default = self.order * 10
+
+    def initial_guess(self, x, y):
+        params = [np.random.normal(
+            loc=np.mean(y),
+            scale=np.std(y))]
+        for i_term in range(self.order):
+            params.append(np.random.normal(
+                loc=0,
+                scale=np.std(y) / np.std(x)**(i_term + 1)))
+        return np.array(params)
+
+    def evaluate(self, p, x):
+        assert len(p) == self.n_params
+
+        y = p[0]
+        for i_term in range(self.order):
+            y += p[i_term + 1] * x ** (i_term + 1)
+        return y
+
+
+class Line(Polynomial):
     """
     y = p0 + p1 * x
     """
     def __init__(self):
-        super().__init__()
-        self.n_params = 2
-        self.name = "Linear model"
-
-    def evaluate(self, p, x):
-        assert len(p) == self.n_params
-        return p[0] + p[1] * x
+        super().__init__(order=1)
 
 
-class Quadratic(AbstractModel):
+class Quadratic(Polynomial):
     """
     y = p0 + p1 * x + p2 * x - ^2
-    rearranged to be
-    y = p0' + p1' * (x - p2')^2
     """
     def __init__(self):
-        super().__init__()
-        self.n_params = 3
-        self.name = "Quadratic model"
-
-    def evaluate(self, p, x):
-        assert len(p) == self.n_params
-        return p[0] + p[1] * (x - p[2])**2
+        super().__init__(order=2)
 
 
-class Cubic(AbstractModel):
+class Cubic(Polynomial):
     """
     y = p0 + p1 * x + p2 * x^2 + p3 * x^3
     """
     def __init__(self):
-        self.n_params = 4
-        self.name = "Cubic model"
-        self.n_iter_default = 10
-
-    def initial_guess(self, x, y):
-        p_0 = np.random.normal(
-            loc=np.mean(y),
-            scale=np.std(y))
-        p_1 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x))
-        p_2 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x)**2)
-        p_3 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x)**3)
-        return np.array([p_0, p_1, p_2, p_3])
-
-    def evaluate(self, p, x):
-        assert len(p) == self.n_params
-        return p[0] + p[1] * x + p[2] * x**2 + p[3] * x**3
+        super().__init__(order=3)
 
 
-class Quartic(AbstractModel):
+class Quartic(Polynomial):
     """
     y = p0 + p1 * x + p2 * x^2 + p3 * x^3 + p4 * x^4
     """
     def __init__(self):
-        self.n_params = 5
-        self.name = "Quartic model"
-        self.n_iter_default = 20
-
-    def initial_guess(self, x, y):
-        p_0 = np.random.normal(
-            loc=np.mean(y),
-            scale=np.std(y))
-        p_1 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x))
-        p_2 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x)**2)
-        p_3 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x)**3)
-        p_4 = np.random.normal(
-            loc=0,
-            scale=np.std(y) / np.std(x)**4)
-        return np.array([p_0, p_1, p_2, p_3, p_4])
-
-    def evaluate(self, p, x):
-        assert len(p) == self.n_params
-        return p[0] + p[1] * x + p[2] * x**2 + p[3] * x**3 + p[4] * x**4
+        super().__init__(order=4)
 
 
 class Exponential(AbstractModel):
@@ -136,5 +120,11 @@ all_models = [
     Quadratic(),
     Cubic(),
     Quartic(),
+    Polynomial(order=5),
+    Polynomial(order=6),
+    Polynomial(order=7),
+    Polynomial(order=8),
+    Polynomial(order=9),
+    Polynomial(order=10),
     Exponential(),
 ]
